@@ -1,0 +1,14 @@
+*.json
+*.git
+.vscode/
+*.sh
+*.defaults
+*.txt
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+*.h5
+images/
+weights/
+*.csv
+
