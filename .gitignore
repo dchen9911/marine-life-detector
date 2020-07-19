@@ -12,4 +12,4 @@ images/
 weights/
 *.csv
 *.jpg
-
+*.tif
