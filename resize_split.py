@@ -35,14 +35,14 @@ def split_images(src, dest, split=9, limit=11000, copy=False, to_grey=False):
         else:
             shutil.move(filepath, final_dest)
 
-def unsplit_images(src, dest, split=9, limit=10000, to_grey=False):
+def unsplit_images(src, dest, name='negative', split=9, limit=10000, to_grey=False):
     test_dest = dest + 'test/'
     train_dest = dest + 'train/'
 
     fpaths = glob.glob(test_dest + '*.*')
     fpaths += glob.glob(train_dest + '*.*')
     for i, filepath in enumerate(fpaths):
-        if 'negative' in filepath:
+        if name in filepath:
             filename = filepath.split('/')[-1]
             if to_grey:
                 os.remove(filepath)
@@ -105,7 +105,9 @@ if __name__ == "__main__":
     src = base_path + 'images/negative_crop/'
     dest =  base_path + 'images/cropped_resized/'
 
-    split_images(src, dest, split=SPLIT, limit=12500)
+    # unsplit_images(src, dest,split=SPLIT, limit=25000,
+    #             name='positive', to_grey=True, 
+    #             )
 
     src =  base_path + 'images/positive_crop/'
 

@@ -1,6 +1,6 @@
 
-IMG_SIZE = 150
-MIN_SIZE = 25
+IMG_SIZE = 120
+MIN_SIZE = 90
 
 # CLASS_NAMES = ['Acropora tenella', 'Pachyseris', 'Foliose / plate', 'Encrusting',
 #                'Porites', 'Seriatopora hystrix', 'Free-living', 
@@ -18,4 +18,11 @@ USE_GREY = False
 # base_path = './urchin_data/'
 base_path = './cuttlefish_data/'
 weights_dir = base_path + '/weights/'
+N_EPOCHS = 5
+
 svm_weights_path = base_path + 'weights/svm_' + str(CLASS_ID) + '.joblib'
+
+if USE_GREY:
+    depth = 1
+else:
+    depth = 3

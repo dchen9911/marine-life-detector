@@ -21,7 +21,6 @@ class_name = CLASS_NAMES[CLASS_ID]
 train_path = base_path + 'images/cropped_resized/train/'
 test_path = base_path + 'images/cropped_resized/test/'
 
-
 if not os.path.exists(weights_dir):
     os.mkdir(weights_dir)
 
@@ -120,17 +119,18 @@ def generate_data(train_images, train_labels, n_batches):
         if i == n_batches:
             i = 0
 
-n_batches = 400
+n_batches = 350
 
 model.compile(
   'adam',
   loss='categorical_crossentropy',
   metrics=['accuracy', tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
 )
+print(model.summary)
 
 model.fit(
   generate_data(train_images, train_labels, n_batches),
-  epochs=20,
+  epochs=N_EPOCHS,
   steps_per_epoch=n_batches,
   validation_data = (test_images, to_categorical(test_labels)),
   verbose=2,
@@ -147,6 +147,6 @@ model.fit(
 
 # loss, accuracy, f1_score, precision, recall = model.evaluate(test_images, to_categorical(test_labels), verbose=1)
 
-model.save_weights(weights_dir + 'cnn_' + str(CLASS_ID) + '.h5')
+model.save_weights(weights_dir + 'cnn_fine_' + str(CLASS_ID) + '.h5')
 
 print("done")

@@ -31,7 +31,12 @@ test_im = []
 test_im_2 = []
 pos_filepaths = []
 neg_filepaths = []
+n_max = 12000
+n = 0
 for filepath in glob.glob(test_path + '*.*'):
+    n += 1
+    if n > n_max:
+        continue
     if USE_GREY:
         img = io.imread(filepath, as_gray=USE_GREY)
     else:
@@ -42,6 +47,7 @@ for filepath in glob.glob(test_path + '*.*'):
     else:
         test_im_2.append(img)
         pos_filepaths.append(filepath)
+    
 
 
 test_images = np.array(test_im)

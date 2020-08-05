@@ -178,7 +178,7 @@ class imageSet:
                 crop_width = random.randint(min_size, max_size)
 
                 start_x = random.randint(0, im_width - crop_width)
-                start_y = random.randint(0, im_width - crop_height)
+                start_y = random.randint(0, im_height - crop_height)
                 end_x = start_x + crop_width
                 end_y = start_y + crop_height
 
@@ -229,10 +229,10 @@ class imageSet:
         fig = plt.gcf()
         self.ax = ax
 
-        axprev = plt.axes([0.1, 0.9, 0.1, 0.05])
-        axclear = plt.axes([0.3, 0.9, 0.1, 0.05])
-        axsave = plt.axes([0.5, 0.9, 0.1, 0.05])
-        axnext = plt.axes([0.7, 0.9, 0.1, 0.05])
+        axprev = plt.axes([0.8, 0.8, 0.1, 0.05])
+        axclear = plt.axes([0.8, 0.6, 0.1, 0.05])
+        axsave = plt.axes([0.8, 0.4, 0.1, 0.05])
+        axnext = plt.axes([0.8, 0.2, 0.1, 0.05])
 
         bprev = Button(axprev, 'Previous')
         bprev.on_clicked(self.prev_image)
@@ -285,6 +285,7 @@ class imageSet:
         assert self.ax is not None, 'Plot needs to first be set up'
         self.ax.clear()
         self.prev_sel = None
+        print(self.i)
         img = self.images_dict[self.images_keys[self.i]]
         self.ax.imshow(img.img)
         if len(img.points) == 2:
@@ -379,7 +380,6 @@ if __name__ == "__main__":
         crop_dest = base_path + 'images/positive_crop_2/' 
         image_set.set_crop_output(crop_dest, crop_info_file)
         image_set.setup_plot()
-
     elif args['crop_random']:
         image_dir = base_path + 'images/negative_raw/'
         image_set = imageSet(image_dir, 
@@ -390,7 +390,7 @@ if __name__ == "__main__":
         crop_dest = base_path + 'images/negative_crop/'
         crop_info_file = base_path + 'neg_crop_info.csv'
         image_set.set_crop_output(crop_dest, crop_info_file)
-        image_set.crop_random(5, 20, 400, resize=True)
+        image_set.crop_random(7, MIN_SIZE, 600, resize=True)
 
     elif args['crop_annots']:
         image_dir = base_path + 'images/positive_raw/'
