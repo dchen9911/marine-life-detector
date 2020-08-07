@@ -74,12 +74,12 @@ class imageContainer:
 class imageSet:
     # img_dir: string of directory where all images are stored
     # filename: string of filename where all the image names are stored
-    def __init__(self, img_dir, size_limit=1000, crop_n=0, load=True):
+    def __init__(self, img_dir, size_limit=1000, crop_n=0, load=True, shuffle=False):
         self.images_dict = {}
         self.size_limit = size_limit
         self.img_dir = img_dir
         if load:
-            self.load_images_from_dir(img_dir)
+            self.load_images_from_dir(img_dir, shuffle)
             self.images_keys = list(self.images_dict.keys())           
 
         self.i = 0 # index of image in images_list that we are currently 
@@ -93,9 +93,12 @@ class imageSet:
         self.crop_info_filepath = None # filename crop box data is appended
         self.crop_img_dest = None # crop img_dir
 
-    def load_images_from_dir(self, img_dir):
+    def load_images_from_dir(self, img_dir, shuffle=False):
         fpaths = glob.glob(img_dir + '*.*')
-        fpaths.sort()
+        if shuffle:
+            random.shuffle(fpaths)
+        else:
+            fpaths.sort()
         for i, fpath in enumerate(fpaths):
             if i >= self.size_limit:
                 break
@@ -125,7 +128,7 @@ class imageSet:
                 img_name, x0, y0, x1, y1, _ = line.split(',')
                 img_name = img_name.split('/')[-1]
                 if img_name not in images_dict.keys():
-                    print("File " + img_name + ' not found in' + self.img_dir)
+                    # print("File " + img_name + ' not found in' + self.img_dir)
                     continue
                 crop_area = list(map(int, [x0, y0, x1, y1])) 
                 images_dict[img_name].add_annot(crop_area, 0)
@@ -136,7 +139,7 @@ class imageSet:
             for index, row in df.iterrows():
                 img_name = row['name']
                 if img_name not in images_dict.keys():
-                    print("File " + img_name + ' not found in' + self.img_dir)
+                    # print("File " + img_name + ' not found in' + self.img_dir)
                     continue
                 crop_areas = json.loads(row['area'])['crop_areas']
                 for ca in crop_areas:

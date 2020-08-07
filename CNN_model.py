@@ -9,34 +9,28 @@ assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
 config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 # tf.config.experimental.set_virtual_device_configuration(physical_devices[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)])
 
+from keras.engine import Model
+from keras.layers import Dropout, Flatten, Dense
+from keras.applications import VGG16
 
-
-# model = Sequential([
-#     Conv2D(32, kernel_size=3, activation='relu', 
-#            input_shape=(IMG_SIZE,IMG_SIZE,depth)),
-#     MaxPooling2D(pool_size=2),
-#     Conv2D(64, kernel_size=3, activation='relu'),
-#     MaxPooling2D(pool_size=2),
-#     Conv2D(128, kernel_size=3, activation='relu'),
-#     MaxPooling2D(pool_size=2),
-#     Dropout(0.4),
-#     Flatten(),
-#     Dense(1024, activation='relu'),
-#     Dropout(0.3),
-#     Dense(1024, activation='relu'),
-#     Dense(2, activation='softmax'),
-# ])
+custom_model = Sequential([
+    Conv2D(32, kernel_size=3, activation='relu', 
+           input_shape=(IMG_SIZE,IMG_SIZE,depth)),
+    MaxPooling2D(pool_size=2),
+    Conv2D(64, kernel_size=3, activation='relu'),
+    MaxPooling2D(pool_size=2),
+    Conv2D(128, kernel_size=3, activation='relu'),
+    MaxPooling2D(pool_size=2),
+    Dropout(0.4),
+    Flatten(),
+    Dense(1024, activation='relu'),
+    Dropout(0.3),
+    Dense(1024, activation='relu'),
+    Dense(2, activation='softmax'),
+])
 
 input_shape = (IMG_SIZE, IMG_SIZE, depth)
 base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
-
-for i in range(len(base_model.layers)): 
-    if i == 11:
-        break
-    layer = base_model.layers[i]
-    layer.trainable = False
-    print('Layer ' + layer.name + ' frozen.')
-
 last = base_model.layers[-1].output
 x = Flatten()(last)
 x = Dense(512, activation='relu', name='fc1')(x)
