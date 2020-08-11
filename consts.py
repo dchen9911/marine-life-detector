@@ -19,7 +19,7 @@ USE_GREY = False
 # base_path = './urchin_data/'
 base_path = './cuttlefish_data/'
 weights_dir = base_path + '/weights/'
-N_EPOCHS = 15 
+N_EPOCHS = 12 
 
 svm_weights_path = base_path + 'weights/svm_' + str(CLASS_ID) + '.joblib'
 

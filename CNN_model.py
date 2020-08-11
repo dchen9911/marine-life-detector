@@ -6,8 +6,8 @@ import tensorflow as tf
 print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
-config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
-# tf.config.experimental.set_virtual_device_configuration(physical_devices[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)])
+# config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+tf.config.experimental.set_virtual_device_configuration(physical_devices[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)])
 
 from keras.engine import Model
 from keras.layers import Dropout, Flatten, Dense

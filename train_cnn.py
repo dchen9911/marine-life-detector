@@ -105,34 +105,24 @@ test_images -= 0.5
 
 print(test_images.shape)
 
+batch_size = 60
 
-
-def generate_data(train_images, train_labels, n_batches):
-    i = 0
-    batch_size = int(len(train_images)/n_batches)
-    print("Batch size is: " + str(batch_size) + '\n\n')
-    while True:
-        image_batch = train_images[batch_size* i: batch_size*(i+1)]
-        label_batch = train_labels[batch_size* i: batch_size*(i+1)]
-        yield((image_batch, to_categorical(label_batch)))
-        i += 1
-        if i == n_batches:
-            i = 0
-
-n_batches = 350
+trdata = ImageDataGenerator()
+train_data = trdata.flow(x=train_images, y=train_labels, batch_size=batch_size)
+tsdata = ImageDataGenerator()
+test_data = tsdata.flow(x=test_images, y=test_labels, batch_size=batch_size)
 
 model.compile(
   'adam',
   loss='categorical_crossentropy',
   metrics=['accuracy', tf.keras.metrics.Precision(), tf.keras.metrics.Recall()]
 )
-print(model.summary)
 
 model.fit(
-  generate_data(train_images, train_labels, n_batches),
+  train_data,
   epochs=N_EPOCHS,
   steps_per_epoch=n_batches,
-  validation_data = (test_images, to_categorical(test_labels)),
+  validation_data = test_data,
   verbose=2,
 )
 

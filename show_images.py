@@ -18,10 +18,10 @@ from matplotlib.collections import PatchCollection
 
 # container class to store image data along with annotations
 class imageContainer:
-    def __init__(self, img, img_name):
+    def __init__(self, img, img_name, fpath=None):
         self.img = img # the actual image data
         self.img_name = img_name # filename of the image
-
+        self.fpath = fpath # filepath
         # the four vars below represent the annotation
         self.points = [] # list of [x,y] coords representing point annotations (optional)
         self.polygons = [] # list of polygons (optional)
@@ -103,7 +103,7 @@ class imageSet:
             if i >= self.size_limit:
                 break
             img_name = fpath.split('/')[-1]
-            new_img = imageContainer(mpimg.imread(fpath), img_name)
+            new_img = imageContainer(mpimg.imread(fpath), img_name, fpath)
             self.images_dict[img_name] = new_img
         
     def load_annotations_from_file(self, filepath, file_format='df'):
@@ -144,7 +144,7 @@ class imageSet:
                 crop_areas = json.loads(row['area'])['crop_areas']
                 for ca in crop_areas:
                     images_dict[img_name].add_annot(ca, 0)
-                    images_dict[img_name].crop_areas.append(ca)
+    
     # sets where the crop outputs go and whether or not they should be written to 
     # a file
     def set_crop_output(self, dest, info_file_path=None):
@@ -320,8 +320,8 @@ class imageSet:
 
     def save_crop_boxes(self, event):
         assert self.crop_img_dest is not None, "Set crop output first"
-
         img = self.images_dict[self.images_keys[self.i]]
+
         if self.crop_info_filepath is not None:
             info_file = open(self.crop_info_filepath, "a+")
             areas_dict = {'crop_areas': img.crop_areas}
@@ -384,16 +384,16 @@ if __name__ == "__main__":
         image_set.set_crop_output(crop_dest, crop_info_file)
         image_set.setup_plot()
     elif args['crop_random']:
-        image_dir = base_path + 'images/negative_raw/'
+        image_dir = base_path + 'images/negative_true/'
         image_set = imageSet(image_dir, 
                             load=False,
                             size_limit=15000,
                             crop_n=0)
 
-        crop_dest = base_path + 'images/negative_crop/'
+        crop_dest = base_path + 'images/crops/resized/'
         crop_info_file = base_path + 'neg_crop_info.csv'
         image_set.set_crop_output(crop_dest, crop_info_file)
-        image_set.crop_random(7, MIN_SIZE, 600, resize=True)
+        image_set.crop_random(6, MIN_SIZE, MAX_SIZE, resize=True)
 
     elif args['crop_annots']:
         image_dir = base_path + 'images/positive_raw/'

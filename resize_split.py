@@ -50,7 +50,7 @@ def unsplit_images(src, dest, name='negative', split=9, limit=10000, to_grey=Fal
                 shutil.move(filepath, src + filename)
     
 # split every x images
-def resize_images(src, dest, split=None, to_grey=False):
+def resize_augment_images(src, dest, split=None, to_grey=False):
     if not os.path.exists(dest):
         os.mkdir(dest)
     if split:
@@ -91,7 +91,30 @@ def resize_images(src, dest, split=None, to_grey=False):
         im_flip.save(final_dest + name + '_4' + '.png')
         im_mirror = ImageOps.mirror(new_im)
         im_mirror.save(final_dest + name + '_5' + '.png')
-        
+
+def resize_images(src, dest, to_grey=False):
+    if not os.path.exists(dest):
+        os.mkdir(dest)
+
+    image_list = []
+    names = []
+    fnames = glob.glob(src + '*.*')
+    random.shuffle(fnames)
+
+    i = 0
+    final_dest = dest
+    
+    for filename in fnames:
+        im=Image.open(filename)
+        if to_grey:
+            im = im.convert('LA')
+
+        new_im = im.resize((IMG_SIZE, IMG_SIZE))
+        name = filename.split('/')[-1]     
+        name = name.split('.')[0]
+
+        new_im.save(final_dest + name + '_4' + '.png')
+
 
 def rename_files():
     src_dir = './cuttlefish_data/images/positive_crop/'
@@ -102,16 +125,14 @@ def rename_files():
         os.rename(filepath, new_filepath)
 
 if __name__ == "__main__":
-    src = base_path + 'images/negative_crop/'
-    dest =  base_path + 'images/cropped_resized/'
+    src = base_path + 'images/crops/positive_crop/'
+    dest =  base_path + 'images/crops/resized/'
 
-    # unsplit_images(src, dest,split=SPLIT, limit=25000,
-    #             name='positive', to_grey=True, 
-    #             )
+    resize_images(src, dest)
 
     src =  base_path + 'images/positive_crop/'
 
-    resize_images(src, dest, split=SPLIT)
+    
 
 
 
