@@ -2,7 +2,7 @@ import tensorflow as tf
 from keras import callbacks
 from keras import optimizers
 from keras.optimizers import Adam
-from keras.utils import to_categorical
+/bin/bash: bdelete: command not found
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -15,8 +15,6 @@ import pandas as pd
 import os 
 import cv2
 import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon, Rectangle
 
 from skimage import io
 from sklearn.model_selection import train_test_split
@@ -46,21 +44,22 @@ def get_iou(bb1, bb2):
     assert iou <= 1.0
     return iou
 
-USE_PRELOADED = True
+EXTRACT_IMAGES = False
+N_NEG_MAX = 15 # maximum number of negatives to take
+N_SINGLE_MAX = 3 # maximum number of crops we can take of same cuttlefish
+CHECK_PREV = False # skips extraction if we've previously done ss on this image
+USE_PREV_RESULTS = True # use previous ss results to extract images for fine tuning
 
 train_images = []
 train_labels = []
 class_name = CLASS_NAMES[CLASS_ID]
 n_img_pos = 0
 n_img_neg = 0 # for naming
+n_pos_images = 0
 
-N_NEG_MAX = 15 # maximum number of negatives to take
-N_SINGLE_MAX = 3 # maximum number of crops we can take of same cuttlefish
-CHECK_PREV = True # checks whether we've previously done ss on this image
-
-if not USE_PRELOADED:
+if EXTRACT_IMAGES:
     # load the training data
-    annot_file = base_path + 'crop_info_fixed.csv'
+    annot_file = base_path + 'annots_fixed.csv'
 
     # get images from this directory
     image_dir = base_path + 'images/fine_tune_raw/pos_batch/'
@@ -68,16 +67,19 @@ if not USE_PRELOADED:
     image_set = imageSet(image_dir, 950)
     image_set.load_annotations_from_file(annot_file, file_format='csv')
 
-    # put selective search images here  
-    out_dir = base_path + 'images/fine_tune/pos_batch/' 
+    # put extracted images here  
+    out_dir = base_path + 'images/fine_tune/ss_pos_batch/' 
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
 
-    # log the selective searches
-    pos_ss_filepath = base_path + 'fine_tune_ss_info.csv'
+    # log.extract the selective searches
+    pos_ss_filepath = base_path + 'pos_ss_info.csv'
     if CHECK_PREV and os.path.isfile(pos_ss_filepath):
         df_pos_ss = pd.read_csv(pos_ss_filepath)
         paths_list = df_pos_ss['path'].tolist()
+    elif USE_PREV_RESULTS:
+        CHECK_PREV = False
+        df_pos_ss = pd.read_csv(pos_ss_filepath)
     else:
         CHECK_PREV = False
 
@@ -85,8 +87,7 @@ if not USE_PRELOADED:
 
     # begin the selective search
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-
-    # ax = plt.gca()
+    
     for ind, key in enumerate(image_set.images_keys):
         print(ind)
         img = image_set.images_dict[key]
@@ -101,18 +102,23 @@ if not USE_PRELOADED:
             x0,y0,x1,y1 = crop_area
             crop_areas.append({"x1":x0,"x2":x1,"y1":y0,"y2":y1})
             crop_area_cnt.append(0) 
+        if USE_PREV_RESULTS:
+            df_row = df_pos_ss[df_pos_ss['path'] == img.fpath]
+            dict_str = df_row['ss_results'].values[0]
+            ss_dict = json.loads(dict_str)
+            ssresults = ss_dict['results']
+        else:
+            ss.setBaseImage(img.img)
+            ss.switchToSelectiveSearchFast()
+            ssresults = ss.process()
+            
+            ss_dict = {'results': np.ndarray.tolist(ssresults)[:2000]}
+            ss_file.write(img.fpath + ',' + '\"' + json.dumps(ss_dict) + '\"' + '\n')
 
-        ss.setBaseImage(img.img)
-        ss.switchToSelectiveSearchFast()
-        ssresults = ss.process()
         imout = img.img
-        
-        ss_dict = {'results': np.ndarray.tolist(ssresults)[:2000]}
-        ss_file.write(img.fpath + ',' + '\"' + json.dumps(ss_dict) + '\"' + '\n')
-
         n_pos = 0
         n_neg = 0
-        print(len(ssresults))
+        pos_found = False
         for i, crop in enumerate(ssresults):
             
             if i > 2000 or (n_pos > 10 and n_neg > N_NEG_MAX):
@@ -129,8 +135,9 @@ if not USE_PRELOADED:
                 
                 if iou > 0.50:
                     pos_flag = 1
+                    pos_found = True
                     break
-                elif iou > 0.2: # kinda a grey area so dont accept
+                elif iou > 0.1: # kinda a grey area so dont accept
                     pos_flag = -1
 
             if pos_flag == -1 :
@@ -146,18 +153,16 @@ if not USE_PRELOADED:
                 
                 pil_img = Image.fromarray(resized)
                 if pos_flag:
-                    rect = Rectangle([x ,y], w, h, fill=False, color='orange', lw=1)
                     pil_img.save(out_dir + 'positive_' + str(n_img_pos) +'.png')
                     n_img_pos += 1
                     n_pos += 1
                 else:
-                    rect = Rectangle([x ,y], w, h, fill=False, color='yellow', lw=1)
                     pil_img.save(out_dir + 'negative_' + str(n_img_neg) +'.png')
                     n_img_neg += 1
                     n_neg += 1
-            # ax.add_patch(rect)
-    # train_images = np.array(train_images)
-    # train_images = (train_images/255) - 0.5
+        if pos_found:
+            n_pos_images += 1
+    print('total of ' + str(n_pos_images) + ' images where positive examples got extracted')
     ss_file.close()
 else:
     fpaths = []
@@ -187,11 +192,11 @@ else:
     batch_size = 60
 
     trdata = ImageDataGenerator( 
-                        horizontal_flip=True, vertical_flip=True, rotation_range=90
+                        horizontal_flip=True, vertical_flip=True, #rotation_range=90
                         )
     train_data = trdata.flow(x=X_train, y=y_train, batch_size=batch_size)
     tsdata = ImageDataGenerator( 
-                        horizontal_flip=True, vertical_flip=True, rotation_range=90
+                        horizontal_flip=True, vertical_flip=True, #rotation_range=90
                                 )
     test_data = tsdata.flow(x=X_test, y=y_test, batch_size=batch_size)
 
@@ -201,7 +206,6 @@ else:
     print(str(n_img_pos) + ' number of positives')
     print(str(n_img_neg) + ' number of negatives')
 
-    # plt.show()
     VGG_model.load_weights(weights_dir + original_weights)
 
     for layer in (VGG_model.layers)[:15]:

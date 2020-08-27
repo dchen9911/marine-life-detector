@@ -1,4 +1,6 @@
-l1 = [1,2,3,4]
-l2 = [1,2,3,4]
+import numpy as np
+from show_images import 
+print('hi there')
 
-print(l1 == l2)
+hi = np.array([1,2,3])
+
