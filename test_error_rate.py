@@ -7,14 +7,12 @@ import cv2
 import json
 from matplotlib.patches import Polygon, Rectangle
 
-
-
 info_path = base_path + 'rcnn_log.csv'
 file_dir = base_path + 'images/negative_raw_test/'
 df = pd.read_csv(info_path)
 
 
-for barrier1 in [0.6]:
+for barrier1 in [0.95]:
     img_dest = base_path + 'images/negative_raw_test/' + str(int(barrier1*100)) + ' bigthreshold/'
     if not os.path.isdir(img_dest):
         os.mkdir(img_dest)
