@@ -1,3 +1,18 @@
+
+"""
+This file contains two classes: imageContainer and imageSet, which enable more effective
+and flexible handling images + annotations. Current functionality allows user to:
+  - load all images from given directory
+  - load annotations from file (json dumps and 4 column (x0, y0, x1, y1) formats supported)
+  - view images and corresponding annotations 
+  - manually add further bounding box annotations with interactive matplotlib session
+  - modify existing annotations (both remove old/incorrect annotations and add new ones)
+  - taking crops of positively annotated boxes
+  - taking random crops of images
+
+Yes file is very badly named
+"""
+
 import pandas as pd
 import json
 import numpy as np
@@ -15,8 +30,7 @@ from matplotlib.widgets import Button
 from matplotlib.patches import Polygon, Rectangle
 from matplotlib.collections import PatchCollection
 
-
-# container class to store image data along with annotations
+# container class to store metadata + annotations for single image
 class imageContainer:
     def __init__(self, img, img_name, fpath=None):
         self.img = img # the actual image data
@@ -69,8 +83,10 @@ class imageContainer:
                                 color=col, lw=2)
                          )
 
-# another container class that contains all data for images in given folder
-# and loads all images into containers
+# Another container class that contains image data and annotations 
+# for all images in given folder.
+# There are methods to add annotations, modify existing annotations,
+# take random crops and take crops of annotations
 class imageSet:
     # img_dir: string of directory where all images are stored
     # filename: string of filename where all the image names are stored
